@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#080d18" />
+  <title>ROOK — Personal AI</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="rook-mark">R</div><div><div class="brand-name">ROOK</div><div class="brand-sub">PERSONAL AI SYSTEM</div></div></div>
+      <div class="status"><span class="pulse"></span> LOCAL INTERFACE</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">YOUR ASSISTANT · YOUR RULES</div>
+        <h1>What's the move?</h1>
+        <p class="muted">Your command center for ideas, projects, and everyday tasks.</p>
+        <button class="orb" id="voiceButton" aria-label="Start voice input">
+          <span class="orb-ring"></span><span class="orb-core">🎙</span>
+        </button>
+        <div class="voice-label" id="voiceLabel">TAP TO TALK</div>
+        <div class="voice-note" id="voiceNote">Voice input requires browser microphone permission.</div>
+      </section>
+
+      <section class="chat panel">
+        <div class="section-head"><div><div class="eyebrow">CONVERSATION</div><h2>Talk to Rook</h2></div><span class="tag">PROTOTYPE</span></div>
+        <div class="messages" id="messages"><div class="bubble rook"><b>ROOK</b><p>I'm here. The interface is ready. Next we'll connect the secure AI backend and iPhone actions.</p></div></div>
+        <form id="chatForm">
+          <input id="messageInput" autocomplete="off" placeholder="Tell Rook what you need..." />
+          <button class="send" type="submit">SEND ↗</button>
+        </form>
+      </section>
+
+      <section class="grid">
+        <article class="panel tile"><div class="tile-icon">⌘</div><div class="eyebrow">CONTROL</div><h3>iPhone Actions</h3><p>Shortcuts, reminders, app launching, and approved actions.</p><span class="tag">NEXT PHASE</span></article>
+        <article class="panel tile"><div class="tile-icon">◈</div><div class="eyebrow">MEMORY</div><h3>Projects & Notes</h3><p>Keep useful context for builds, goals, and ongoing work.</p><span class="tag">NEXT PHASE</span></article>
+        <article class="panel tile"><div class="tile-icon">↗</div><div class="eyebrow">WORKSPACE</div><h3>Money Projects</h3><p>Track ideas, experiments, customers, and progress.</p><span class="tag">NEXT PHASE</span></article>
+      </section>
+      <footer>ROOK // BUILD 0.1 · Interface prototype only — no account connection or actions enabled yet.</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

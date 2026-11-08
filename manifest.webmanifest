@@ -1,0 +1,9 @@
+{
+  "name": "ROOK Personal AI",
+  "short_name": "ROOK",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#070b14",
+  "theme_color": "#080d18",
+  "description": "Personal AI assistant interface prototype"
+}

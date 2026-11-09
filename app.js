@@ -6,6 +6,8 @@ const voiceButton = document.getElementById('voiceButton');
 const voiceLabel = document.getElementById('voiceLabel');
 const voiceNote = document.getElementById('voiceNote');
 
+const API_URL = 'https://rook-core.artzdakotaevo.workers.dev/chat';
+
 const CHAT_KEY = 'rook_chat_v1';
 const MEMORY_KEY = 'rook_memory_v1';
 
@@ -24,7 +26,7 @@ function saveData(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch {
-    voiceNote.textContent = 'Storage unavailable. Your data may not be saved.';
+    voiceNote.textContent = 'Storage unavailable.';
   }
 }
 
@@ -48,76 +50,106 @@ function addBubble(text, who, save = true) {
   }
 }
 
-// Restore previous conversation
 chatHistory.forEach(item => {
   addBubble(item.text, item.who, false);
 });
 
-function respond(message) {
+async function respond(message) {
   const command = message.trim();
   const lower = command.toLowerCase();
 
-  // Save a memory
   if (lower.startsWith('remember:')) {
     const note = command.slice(9).trim();
 
     if (!note) {
-      return 'Tell me what to remember after the words "remember:".';
+      return 'Tell me what to remember after "remember:".';
     }
 
     memories.push(note);
     saveData(MEMORY_KEY, memories);
 
-    return `Got it. I've saved this to Rook's local memory: "${note}"`;
+    return `Saved to Rook's local memory: "${note}"`;
   }
 
-  // Recall memories
   if (
     lower.includes('what do you remember') ||
     lower.includes('show my memories') ||
     lower.includes('recall my memories')
   ) {
-    if (memories.length === 0) {
-      return 'My memory is empty right now. Tell me something using "remember:".';
+    if (!memories.length) {
+      return 'My local memory is empty. Try "remember: followed by your note".';
     }
 
-    return 'Here is what I have saved:\n\n' +
-      memories.map((note, index) =>
-        `${index + 1}. ${note}`
-      ).join('\n\n');
+    return 'Here is what I remember:\n\n' +
+      memories.map((note, i) => `${i + 1}. ${note}`).join('\n\n');
   }
 
-  // Clear memories
   if (lower === 'forget all my memories') {
     memories = [];
     saveData(MEMORY_KEY, memories);
     return 'All local memories have been cleared.';
   }
 
-  // Basic offline responses
-  if (lower.includes('hello') || lower.includes('hey rook')) {
-    return 'I'm here. Rook systems are online. What are we working on?';
-  }
+  const previousMessages = chatHistory
+    .slice(0, -1)
+    .slice(-12)
+    .map(item => ({
+      role: item.who === 'user' ? 'user' : 'assistant',
+      content: item.text
+    }));
 
-  if (lower.includes('who are you')) {
-    return 'I'm Rook, your personal assistant project. My local memory is active. My AI connection is still being built.';
-  }
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: command,
+        history: previousMessages
+      })
+    });
 
-  return 'I received your message. My local memory system is working, but my real AI brain has not been connected yet.';
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.details || data.error || 'Rook could not respond.');
+    }
+
+    return data.reply || 'Rook returned an empty response.';
+
+  } catch (error) {
+    console.error('Rook connection error:', error);
+
+    return `I couldn't reach Rook Core. ${error.message || 'Check your connection and try again.'}`;
+  }
 }
 
-form.addEventListener('submit', (event) => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
 
   const value = input.value.trim();
   if (!value) return;
 
   addBubble(value, 'user');
+  input.value = '';
+  input.disabled = true;
 
-  const reply = respond(value);
+  const sendButton = form.querySelector('button[type="submit"]');
+  if (sendButton) sendButton.disabled = true;
+
+  addBubble('Thinking...', 'rook', false);
+
+  const reply = await respond(value);
+
+  const thinkingBubble = messages.lastElementChild;
+  if (thinkingBubble) thinkingBubble.remove();
+
   addBubble(reply, 'rook');
 
-  input.value = '';
+  input.disabled = false;
+  if (sendButton) sendButton.disabled = false;
+  input.focus();
 });
 
 // Voice input
@@ -145,7 +177,7 @@ if (SpeechRecognition) {
       'Microphone unavailable. Check browser permissions.';
   };
 
-  recognition.onresult = (event) => {
+  recognition.onresult = event => {
     input.value = event.results[0][0].transcript;
     voiceNote.textContent =
       'Voice captured. Press Send to talk to Rook.';

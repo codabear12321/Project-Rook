@@ -197,3 +197,18 @@ if (SpeechRecognition) {
       'Speech recognition is not supported in this browser.';
   });
 }
+function speakRook(text) {
+  if (!('speechSynthesis' in window)) {
+    voiceNote.textContent = 'Speech is not supported.';
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = 'en-US';
+  speech.rate = 1;
+  speech.pitch = 1;
+
+  window.speechSynthesis.speak(speech);
+}

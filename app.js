@@ -50,6 +50,38 @@ function addBubble(text, who, save = true) {
   }
 }
 
+function speakRook(text) {
+  if (!('speechSynthesis' in window)) {
+    voiceNote.textContent = 'Speech is not supported in this browser.';
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = 'en-US';
+  speech.rate = 1;
+  speech.pitch = 1;
+
+  speech.onstart = () => {
+    voiceLabel.textContent = 'ROOK SPEAKING…';
+    voiceButton.classList.add('speaking');
+  };
+
+  speech.onend = () => {
+    voiceLabel.textContent = 'TAP TO TALK';
+    voiceButton.classList.remove('speaking');
+  };
+
+  speech.onerror = () => {
+    voiceLabel.textContent = 'TAP TO TALK';
+    voiceButton.classList.remove('speaking');
+    voiceNote.textContent = 'Voice playback failed.';
+  };
+
+  window.speechSynthesis.speak(speech);
+}
+
 chatHistory.forEach(item => {
   addBubble(item.text, item.who, false);
 });
@@ -62,7 +94,7 @@ async function respond(message) {
     const note = command.slice(9).trim();
 
     if (!note) {
-      return 'Tell me what to remember after "remember:".';
+      return 'Tell me what to remember after remember:.';
     }
 
     memories.push(note);
@@ -77,7 +109,7 @@ async function respond(message) {
     lower.includes('recall my memories')
   ) {
     if (!memories.length) {
-      return 'My local memory is empty. Try "remember: followed by your note".';
+      return 'My local memory is empty. Try remember: followed by your note.';
     }
 
     return 'Here is what I remember:\n\n' +
@@ -120,7 +152,6 @@ async function respond(message) {
 
   } catch (error) {
     console.error('Rook connection error:', error);
-
     return `I couldn't reach Rook Core. ${error.message || 'Check your connection and try again.'}`;
   }
 }
@@ -146,6 +177,7 @@ form.addEventListener('submit', async event => {
   if (thinkingBubble) thinkingBubble.remove();
 
   addBubble(reply, 'rook');
+  speakRook(reply);
 
   input.disabled = false;
   if (sendButton) sendButton.disabled = false;
@@ -165,6 +197,7 @@ if (SpeechRecognition) {
   recognition.onstart = () => {
     voiceButton.classList.add('listening');
     voiceLabel.textContent = 'LISTENING…';
+    voiceNote.textContent = 'Rook is listening.';
   };
 
   recognition.onend = () => {
@@ -196,19 +229,4 @@ if (SpeechRecognition) {
     voiceNote.textContent =
       'Speech recognition is not supported in this browser.';
   });
-}
-function speakRook(text) {
-  if (!('speechSynthesis' in window)) {
-    voiceNote.textContent = 'Speech is not supported.';
-    return;
-  }
-
-  window.speechSynthesis.cancel();
-
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.lang = 'en-US';
-  speech.rate = 1;
-  speech.pitch = 1;
-
-  window.speechSynthesis.speak(speech);
 }
